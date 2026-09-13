@@ -1,0 +1,108 @@
+/**
+ * !Patrón Memento
+ * Permite capturar y externalizar un estado interno de un objeto,
+ * de manera que el objeto pueda ser restaurado a ese estado más tarde.
+ *
+ * * Es útil cuando se necesita guardar el estado de un objeto para poder
+ * * volver a él en un futuro.
+ *
+ * https://refactoring.guru/es/design-patterns/memento
+ *
+ * * Ejercicio:
+ * En este ejercicio DrawingBoard (Originator) guarda su lista de figuras y
+ * puede crear una foto de ese estado (DrawingMemento) o restaurarse a partir
+ * de una. History (Caretaker) guarda esos mementos en una pila para poder
+ * deshacer los últimos cambios sin conocer cómo está armado el estado.
+ *
+ * Se espera entender cómo el patrón Memento permite capturar y restaurar el
+ * estado interno de un objeto sin romper su encapsulación, dejando que sea
+ * el propio Originator (DrawingBoard) quien decide qué guardar y cómo
+ * restaurarlo.
+ */
+
+import { COLORS } from '../helpers/colors.ts';
+
+// Clase Memento DrawingMemento
+class DrawingMemento {
+  private shapes: string[];
+
+  constructor(shapes: string[]) {
+    // Guardamos una copia de las figuras para evitar mutaciones
+    this.shapes = [...shapes];
+  }
+
+  getShapes(): string[] {
+    return [...this.shapes];
+  }
+}
+
+// Clase Originator DrawingBoard
+class DrawingBoard {
+  private shapes: string[] = [];
+
+  // Agregar una figura a la pizarra
+  addShape(shape: string): void {
+    this.shapes.push(shape);
+    console.log(`Figura agregada: ${shape}`);
+  }
+
+  // Mostrar el estado actual de la pizarra
+  showBoard(): void {
+    console.log('Pizarra actual:', this.shapes.join(', ') || 'Vacía');
+  }
+
+  // Crear un Memento del estado actual de la pizarra
+  save(): DrawingMemento {
+    return new DrawingMemento(this.shapes);
+  }
+
+  // Restaurar el estado de la pizarra desde un Memento
+  restore(memento: DrawingMemento): void {
+    this.shapes = memento.getShapes();
+    console.log('%c\nEstado de la pizarra restaurado.', COLORS.blue);
+  }
+}
+
+// Clase Caretaker History
+class History {
+  private mementos: DrawingMemento[] = [];
+
+  // Guardar un Memento
+  push(memento: DrawingMemento): void {
+    this.mementos.push(memento);
+  }
+
+  // Recuperar el último Memento
+  pop(): DrawingMemento | undefined {
+    return this.mementos.pop();
+  }
+}
+
+// Código cliente
+function main(): void {
+  const drawingBoard = new DrawingBoard();
+  const history = new History();
+
+  // El usuario agrega figuras y guarda el estado en cada paso
+  drawingBoard.addShape('Círculo');
+  history.push(drawingBoard.save());
+
+  drawingBoard.addShape('Cuadrado');
+  history.push(drawingBoard.save());
+
+  drawingBoard.addShape('Triángulo');
+  drawingBoard.showBoard(); // Mostrar estado actual de la pizarra
+
+  // Deshacer el último cambio
+  drawingBoard.restore(history.pop()!);
+  drawingBoard.showBoard(); // Mostrar estado después de deshacer
+
+  // Deshacer otro cambio
+  drawingBoard.restore(history.pop()!);
+  drawingBoard.showBoard(); // Mostrar estado después de deshacer nuevamente
+
+  // drawingBoard.restore(history.pop()!);
+  // drawingBoard.showBoard(); // Mostrar estado después de deshacer nuevamente
+}
+
+main();
